@@ -1,9 +1,7 @@
 "use client";
 
-import { createContext, useContext, useReducer, useState, ReactNode } from "react";
+import { createContext, useContext, useReducer, ReactNode } from "react";
 import { Product } from "./data";
-
-// ─── Cart ─────────────────────────────────────────────────────────────────────
 
 export type CartItem = { product: Product; qty: number };
 type CartState  = { items: CartItem[] };
@@ -46,53 +44,26 @@ export type CartContextType = {
 
 const CartCtx = createContext<CartContextType | null>(null);
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-
-export type AuthUser = { name: string; email: string } | null;
-
-export type AuthContextType = {
-  user:   AuthUser;
-  login:  (name: string, email: string) => void;
-  logout: () => void;
-};
-
-const AuthCtx = createContext<AuthContextType | null>(null);
-
-// ─── Provider ─────────────────────────────────────────────────────────────────
-
 export function AppProviders({ children }: { children: ReactNode }) {
   const [cartState, dispatch] = useReducer(cartReducer, { items: [] });
-  const [user, setUser] = useState<AuthUser>(null);
 
   return (
-    <AuthCtx.Provider value={{
-      user,
-      login:  (name, email) => setUser({ name, email }),
-      logout: () => setUser(null),
+    <CartCtx.Provider value={{
+      items:          cartState.items,
+      addToCart:      (p, q)    => dispatch({ type: "ADD",        product: p, qty: q }),
+      removeFromCart: (id)      => dispatch({ type: "REMOVE",     id }),
+      updateQty:      (id, qty) => dispatch({ type: "UPDATE_QTY", id, qty }),
+      clearCart:      ()        => dispatch({ type: "CLEAR" }),
+      total: cartState.items.reduce((s, i) => s + i.product.price * i.qty, 0),
+      count: cartState.items.reduce((s, i) => s + i.qty, 0),
     }}>
-      <CartCtx.Provider value={{
-        items:          cartState.items,
-        addToCart:      (p, q)    => dispatch({ type: "ADD",        product: p, qty: q }),
-        removeFromCart: (id)      => dispatch({ type: "REMOVE",     id }),
-        updateQty:      (id, qty) => dispatch({ type: "UPDATE_QTY", id, qty }),
-        clearCart:      ()        => dispatch({ type: "CLEAR" }),
-        total: cartState.items.reduce((s, i) => s + i.product.price * i.qty, 0),
-        count: cartState.items.reduce((s, i) => s + i.qty, 0),
-      }}>
-        {children}
-      </CartCtx.Provider>
-    </AuthCtx.Provider>
+      {children}
+    </CartCtx.Provider>
   );
 }
 
 export const useCart = (): CartContextType => {
   const ctx = useContext(CartCtx);
   if (!ctx) throw new Error("useCart must be used inside AppProviders");
-  return ctx;
-};
-
-export const useAuth = (): AuthContextType => {
-  const ctx = useContext(AuthCtx);
-  if (!ctx) throw new Error("useAuth must be used inside AppProviders");
   return ctx;
 };
