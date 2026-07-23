@@ -1,48 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { Star, ArrowRight, SlidersHorizontal, Search } from "lucide-react";
-import { PRODUCTS } from "@/lib/data";
+import { Star, ArrowRight, SlidersHorizontal, Search, Store } from "lucide-react";
 import { C, serif, sans } from "@/lib/theme";
-
-const FILTERS = ["All", "Dogs & Cats", "Joint & Mobility", "Skin & Coat", "Immunity", "Calming"];
-
-const SPECIES_ICONS: Record<string, string> = {
-  "tonico-miracolo": "🦴",
-  "derma-rituale":   "✨",
-  "immuno-forte":    "🛡️",
-  "calmo-sera":      "🌙",
-};
+import { useProducts } from "@/lib/hooks";
+import BenefitIcon from "../_components/BenefitIcon";
 
 export default function ProductsPage() {
   const router = useRouter();
+  const { products, loading } = useProducts();
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
 
-  const filtered = PRODUCTS
+  const filters = useMemo(() => {
+    const productFilters = products.flatMap(p => [p.category, ...p.concerns]).filter(Boolean);
+    return ["All", "Dogs", "Cats", ...Array.from(new Set(productFilters))];
+  }, [products]);
+
+  const filtered = products
     .filter(p => {
+      const query = search.toLowerCase();
       const matchesSearch =
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.subtitle.toLowerCase().includes(search.toLowerCase()) ||
-        p.tagline.toLowerCase().includes(search.toLowerCase());
+        p.name.toLowerCase().includes(query) ||
+        p.subtitle.toLowerCase().includes(query) ||
+        p.tagline.toLowerCase().includes(query) ||
+        p.category?.toLowerCase().includes(query) ||
+        p.concerns?.some(concern => concern.toLowerCase().includes(query));
 
       const matchesFilter =
         activeFilter === "All" ||
-        (activeFilter === "Dogs & Cats"     && p.species.includes("Dogs")) ||
-        (activeFilter === "Joint & Mobility"&& p.subtitle.toLowerCase().includes("joint")) ||
-        (activeFilter === "Skin & Coat"     && p.subtitle.toLowerCase().includes("skin")) ||
-        (activeFilter === "Immunity"         && p.subtitle.toLowerCase().includes("immun")) ||
-        (activeFilter === "Calming"          && p.subtitle.toLowerCase().includes("calm"));
+        p.species.includes(activeFilter) ||
+        p.category === activeFilter ||
+        p.concerns?.includes(activeFilter);
 
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
       if (sortBy === "price-asc")  return a.price - b.price;
       if (sortBy === "price-desc") return b.price - a.price;
-      return 0;
+      return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
     });
 
   return (
@@ -94,7 +93,7 @@ export default function ProductsPage() {
 
           {/* filter pills */}
           <div className="flex gap-2 flex-wrap">
-            {FILTERS.map(f => (
+            {filters.map(f => (
               <button
                 key={f}
                 onClick={() => setActiveFilter(f)}
@@ -145,7 +144,20 @@ export default function ProductsPage() {
       {/* ─── PRODUCT GRID ─── */}
       <div className="max-w-7xl mx-auto px-6 py-12">
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden animate-pulse" style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${C.gold}22` }}>
+                <div style={{ aspectRatio: "3/4", background: `${C.gold}08` }} />
+                <div className="p-5 space-y-3">
+                  <div className="h-2 rounded w-1/2" style={{ background: `${C.gold}15` }} />
+                  <div className="h-4 rounded w-3/4" style={{ background: `${C.ivory}10` }} />
+                  <div className="h-2 rounded w-full"  style={{ background: `${C.ivory}08` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="text-center py-24"
@@ -162,7 +174,7 @@ export default function ProductsPage() {
         ) : (
           <>
             <p className="text-xs mb-8" style={{ color: `${C.ivory}35`, fontFamily: sans }}>
-              Showing {filtered.length} of {PRODUCTS.length} formulas
+              Showing {filtered.length} of {products.length} formulas
             </p>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -194,10 +206,10 @@ export default function ProductsPage() {
                       {p.badge}
                     </span>
 
-                    {/* species icon */}
-                    <span className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-base"
+                    {/* marketplace count */}
+                    <span className="absolute top-4 right-4 h-8 rounded-full flex items-center gap-1.5 px-2.5 text-[10px] font-bold"
                       style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)" }}>
-                      {SPECIES_ICONS[p.id]}
+                      <Store size={12} /> {p.storeLinks.filter(link => link.active !== false).length || p.storeLinks.length}
                     </span>
 
                     {/* bottom price overlay */}
@@ -212,7 +224,7 @@ export default function ProductsPage() {
                   {/* info */}
                   <div className="flex flex-col flex-1 p-5">
                     <p className="text-[9px] font-bold tracking-[0.32em] uppercase mb-1" style={{ color: C.gold, fontFamily: sans }}>
-                      {p.subtitle}
+                      {p.category || p.subtitle}
                     </p>
                     <h3 className="font-bold text-lg leading-tight mb-1" style={{ fontFamily: serif, color: C.ivory }}>
                       {p.name}
@@ -224,9 +236,10 @@ export default function ProductsPage() {
                     {/* benefit pills */}
                     <div className="flex flex-wrap gap-1.5 mb-5">
                       {p.benefits.slice(0, 2).map(b => (
-                        <span key={b.title} className="text-[10px] font-bold px-2.5 py-1 rounded-full"
+                        <span key={b.title} className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full"
                           style={{ background: `${C.gold}10`, color: C.gold, border: `1px solid ${C.gold}22` }}>
-                          {b.icon} {b.title}
+                          <BenefitIcon name={b.icon} size={10} strokeWidth={2.5} />
+                          {b.title}
                         </span>
                       ))}
                     </div>
@@ -236,7 +249,9 @@ export default function ProductsPage() {
                       {[...Array(5)].map((_, j) => (
                         <Star key={j} size={11} fill={C.gold} style={{ color: C.gold }} />
                       ))}
-                      <span className="text-[10px]" style={{ color: `${C.ivory}40`, fontFamily: sans }}>4.9 · 247 reviews</span>
+                      <span className="text-[10px]" style={{ color: `${C.ivory}40`, fontFamily: sans }}>
+                        {p.species.join(" & ")} · {p.storeLinks.filter(link => link.active !== false).length || p.storeLinks.length} stores
+                      </span>
                     </div>
 
                     {/* CTA */}
@@ -247,7 +262,7 @@ export default function ProductsPage() {
                         onMouseEnter={e => { e.currentTarget.style.background = C.gold; e.currentTarget.style.color = C.deepBurg; }}
                         onMouseLeave={e => { e.currentTarget.style.background = `${C.gold}15`; e.currentTarget.style.color = C.gold; }}
                       >
-                        View Details <ArrowRight size={13} />
+                        Compare Buying Options <ArrowRight size={13} />
                       </button>
                     </div>
                   </div>

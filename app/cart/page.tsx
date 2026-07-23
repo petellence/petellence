@@ -22,6 +22,7 @@ export default function Cart() {
   const discount   = applied ? Math.round(total * COUPON_DISCOUNT) : 0;
   const shipping   = (total - discount) >= FREE_SHIPPING_THRESHOLD ? 0 : 99;
   const grandTotal = total - discount + shipping;
+  const firstStoreUrl = items.flatMap(item => item.product.storeLinks).find(Boolean)?.url;
 
   const handleCoupon = () => {
     if (coupon.trim().toUpperCase() === COUPON_CODE) {
@@ -131,7 +132,7 @@ export default function Cart() {
                         <Plus size={13} />
                       </button>
                     </div>
-                    <p className="font-bold text-lg" style={{ fontFamily:serif, color:p.accentColor }}>
+                    <p className="font-bold text-lg" style={{ fontFamily:serif, color:p.badgeColor }}>
                       ₹{(p.price * qty).toLocaleString("en-IN")}
                     </p>
                   </div>
@@ -219,8 +220,11 @@ export default function Cart() {
               </span>
             </div>
 
-            <button className="w-full gold-btn py-4 rounded-xl text-sm tracking-wide flex items-center justify-center gap-2 mb-3">
-              Checkout Securely <ArrowRight size={15} />
+            <button
+              onClick={() => firstStoreUrl ? window.open(firstStoreUrl, "_blank", "noopener,noreferrer") : router.push(`/products/${items[0].product.id}`)}
+              className="w-full gold-btn py-4 rounded-xl text-sm tracking-wide flex items-center justify-center gap-2 mb-3"
+            >
+              Continue to Marketplace <ArrowRight size={15} />
             </button>
             <p className="text-xs text-center" style={{ color:C.muted }}>Razorpay · Stripe · 256-bit SSL encryption</p>
 

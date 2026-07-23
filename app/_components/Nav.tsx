@@ -2,18 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { ShoppingCart, Menu, X, ChevronDown } from "lucide-react";
-import { useCart } from "@/lib/context";
-import { PRODUCTS } from "@/lib/data";
+import { usePathname } from "next/navigation";
+import { Menu, X, ChevronDown, Store } from "lucide-react";
+import { useProducts } from "@/lib/hooks";
 import { C, serif, sans } from "@/lib/theme";
 
 export default function Nav() {
   const [scrolled,   setScrolled]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [prodOpen,   setProdOpen]   = useState(false);
-  const { count } = useCart();
-  const router   = useRouter();
+  const { products } = useProducts();
   const pathname = usePathname();
 
   const isHome = pathname === "/";
@@ -84,7 +82,7 @@ export default function Nav() {
                     <p className="text-[10px]" style={{ color: `${C.ivory}55`, fontFamily: sans }}>Browse the collection</p>
                   </div>
                 </Link>
-                {PRODUCTS.map(p => (
+                {products.map(p => (
                   <Link
                     key={p.id}
                     href={`/products/${p.id}`}
@@ -107,22 +105,14 @@ export default function Nav() {
 
         {/* right actions */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.push("/cart")}
+          <Link
+            href="/products"
             className="relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg transition-all"
             style={{ background: `${C.gold}1a`, border: `1px solid ${C.gold}45` }}
           >
-            <ShoppingCart size={16} style={{ color: C.gold }} />
-            {count > 0 && (
-              <span
-                className="absolute -top-1.5 -right-1.5 min-w-[18px] min-h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center px-1"
-                style={{ background: C.maroon, color: C.ivory }}
-              >
-                {count}
-              </span>
-            )}
-            <span className="hidden sm:block text-xs font-bold" style={{ color: C.gold }}>Cart</span>
-          </button>
+            <Store size={16} style={{ color: C.gold }} />
+            <span className="hidden sm:block text-xs font-bold" style={{ color: C.gold }}>Where to Buy</span>
+          </Link>
           <button
             className="md:hidden"
             onClick={() => setMobileOpen(m => !m)}
@@ -136,7 +126,7 @@ export default function Nav() {
       {/* mobile menu */}
       {mobileOpen && (
         <div className="md:hidden px-5 pb-5" style={{ background: "rgba(42,6,16,0.98)" }}>
-          {[{ label: "Home", to: "/" }, { label: "All Products", to: "/products" }, { label: "Cart", to: "/cart" }].map(({ label, to }) => (
+          {[{ label: "Home", to: "/" }, { label: "All Products", to: "/products" }].map(({ label, to }) => (
             <Link key={to} href={to}
               className="flex items-center justify-between py-3 text-sm"
               style={{ color: C.ivory, fontFamily: sans, borderBottom: `1px solid ${C.gold}18` }}>
@@ -144,7 +134,7 @@ export default function Nav() {
             </Link>
           ))}
           <p className="text-[10px] tracking-[0.2em] uppercase mt-4 mb-2" style={{ color: C.gold }}>Products</p>
-          {PRODUCTS.map(p => (
+          {products.map(p => (
             <Link key={p.id} href={`/products/${p.id}`}
               className="block py-2.5 text-sm"
               style={{ color: `${C.ivory}80`, fontFamily: sans, borderBottom: `1px solid ${C.gold}10` }}>

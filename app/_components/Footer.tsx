@@ -15,19 +15,19 @@ export default function Footer() {
             </p>
           </div>
           {[
-            { heading:"Products",  links:["Tonico Miracolo","Derma Rituale","Immuno Forte","Calmo Sera"] },
-            { heading:"Company",   links:["Our Story","The Science","Vet Partners","Blog"] },
-            { heading:"Support",   links:["WhatsApp Chat","FAQ","Shipping Policy","Returns & Refunds"] },
+            { heading:"Products",  links:[["All Products","/products"],["Joint Support","/products"],["Skin & Coat","/products"],["Immunity","/products"]] },
+            { heading:"Company",   links:[["Our Promise","/"],["The Science","/"],["Reviews","/"],["Newsletter","/"]] },
+            { heading:"Support",   links:[["Marketplace Buying","/products"],["Amazon","https://www.amazon.in/s?k=petellence+pet+supplements"],["Flipkart","https://www.flipkart.com/search?q=petellence+pet+supplements"],["Meesho","https://www.meesho.com/search?q=petellence%20pet%20supplements"]] },
           ].map(({heading,links})=>(
             <div key={heading}>
               <p className="text-[10px] font-bold tracking-[0.22em] uppercase mb-5" style={{ color:C.gold }}>{heading}</p>
               <ul className="space-y-2.5">
-                {links.map(l=>(
-                  <li key={l}>
-                    <a href="#" className="text-xs transition-colors" style={{ color:`${C.ivory}50`, fontFamily:sans }}
+                {links.map(([label, href])=>(
+                  <li key={label}>
+                    <a href={href} className="text-xs transition-colors" style={{ color:`${C.ivory}50`, fontFamily:sans }}
                       onMouseEnter={e=>((e.target as HTMLElement).style.color=C.ivory)}
                       onMouseLeave={e=>((e.target as HTMLElement).style.color=`${C.ivory}50`)}>
-                      {l}
+                      {label}
                     </a>
                   </li>
                 ))}
