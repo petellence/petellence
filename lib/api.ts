@@ -1,6 +1,8 @@
 import { PRODUCTS } from "./data";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+// Sanitize: strip surrounding whitespace and any trailing slash so a stray
+// space or "/" in the env var can't produce URLs like "...com%20/api/...".
+const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080").trim().replace(/\/+$/, "");
 
 export interface StoreLink {
   platform: string;
