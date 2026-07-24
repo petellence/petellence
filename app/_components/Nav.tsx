@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Store } from "lucide-react";
@@ -13,6 +13,19 @@ export default function Nav() {
   const [prodOpen,   setProdOpen]   = useState(false);
   const { products } = useProducts();
   const pathname = usePathname();
+
+  // Hover-intent: keep the dropdown open while moving across the small gap
+  // between the trigger and the menu, and close after a short grace period.
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openMenu = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setProdOpen(true);
+  };
+  const closeMenu = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setProdOpen(false), 140);
+  };
+  useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
 
   const isHome = pathname === "/";
 
@@ -56,17 +69,24 @@ export default function Nav() {
 
           {/* products dropdown */}
           <div className="relative"
-            onMouseEnter={() => setProdOpen(true)}
-            onMouseLeave={() => setProdOpen(false)}
+            onMouseEnter={openMenu}
+            onMouseLeave={closeMenu}
           >
-            <Link href="/products" className="flex items-center gap-1 text-sm transition-colors" style={{ color: `${C.ivory}90`, fontFamily: sans }}
-              onMouseEnter={e => (e.currentTarget.style.color = C.gold)}
-              onMouseLeave={e => (e.currentTarget.style.color = `${C.ivory}90`)}>
-              Products <ChevronDown size={13} />
+            <Link href="/products" className="flex items-center gap-1 text-sm transition-colors"
+              style={{ color: prodOpen ? C.gold : `${C.ivory}90`, fontFamily: sans }}
+              aria-expanded={prodOpen}
+              onFocus={openMenu}>
+              Products <ChevronDown size={13} className="transition-transform duration-200"
+                style={{ transform: prodOpen ? "rotate(180deg)" : "none" }} />
             </Link>
             {prodOpen && (
               <div
-                className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 rounded-2xl shadow-2xl overflow-hidden"
+                className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-56"
+                onMouseEnter={openMenu}
+                onMouseLeave={closeMenu}
+              >
+              <div
+                className="rounded-2xl shadow-2xl overflow-hidden"
                 style={{ background: "rgba(42,6,16,0.98)", border: `1px solid ${C.gold}30` }}
               >
                 <Link
@@ -98,6 +118,7 @@ export default function Nav() {
                     </div>
                   </Link>
                 ))}
+              </div>
               </div>
             )}
           </div>
