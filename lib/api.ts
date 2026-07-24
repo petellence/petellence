@@ -119,6 +119,19 @@ export async function subscribeNewsletter(email: string): Promise<{ message: str
   return { message: json.message };
 }
 
+export async function submitContact(payload: {
+  name: string; email: string; subject?: string; message: string;
+}): Promise<{ message: string }> {
+  const res = await fetch(`${BASE}/api/contact`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify(payload),
+  });
+  const json = await res.json() as { success: boolean; message: string };
+  if (!res.ok) throw new Error(json.message ?? "Message could not be sent");
+  return { message: json.message };
+}
+
 export async function submitTestimonial(payload: {
   name: string; petName: string; petType: string; rating: number; review: string;
 }): Promise<void> {

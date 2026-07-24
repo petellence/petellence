@@ -16,7 +16,7 @@ export default function Footer() {
           </div>
           {[
             { heading:"Products",  links:[["All Products","/products"],["Joint Support","/products"],["Skin & Coat","/products"],["Immunity","/products"]] },
-            { heading:"Company",   links:[["Our Promise","/"],["The Science","/"],["Reviews","/"],["Newsletter","/"]] },
+            { heading:"Company",   links:[["About Us","/about"],["Contact Us","/contact"],["Privacy Policy","/privacy"]] },
             { heading:"Support",   links:[["Marketplace Buying","/products"],["Amazon","https://www.amazon.in/s?k=petellence+pet+supplements"],["Flipkart","https://www.flipkart.com/search?q=petellence+pet+supplements"],["Meesho","https://www.meesho.com/search?q=petellence%20pet%20supplements"]] },
           ].map(({heading,links})=>(
             <div key={heading}>
