@@ -108,6 +108,26 @@ export async function fetchTestimonials(): Promise<ApiTestimonial[]> {
   }
 }
 
+export interface ApiCategory {
+  category: string;
+  count:    number;
+}
+
+export async function fetchCategories(): Promise<ApiCategory[]> {
+  try {
+    const categories = await apiFetch<ApiCategory[]>("/api/products/categories");
+    return Array.isArray(categories) ? categories : [];
+  } catch {
+    // Fall back to deriving categories from the products list
+    const products = await fetchProducts();
+    const counts = new Map<string, number>();
+    for (const p of products) {
+      if (p.category) counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
+    }
+    return Array.from(counts, ([category, count]) => ({ category, count })).sort((a, b) => a.category.localeCompare(b.category));
+  }
+}
+
 export async function subscribeNewsletter(email: string): Promise<{ message: string }> {
   const res = await fetch(`${BASE}/api/newsletter/subscribe`, {
     method:  "POST",

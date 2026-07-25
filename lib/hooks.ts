@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchProducts, fetchProduct, fetchTestimonials, type ApiProduct, type ApiTestimonial } from "./api";
+import { fetchProducts, fetchProduct, fetchTestimonials, fetchCategories, type ApiProduct, type ApiTestimonial, type ApiCategory } from "./api";
 
 export function useProducts() {
   const [products, setProducts] = useState<ApiProduct[]>([]);
@@ -19,6 +19,22 @@ export function useProducts() {
   }, []);
 
   return { products, loading, error };
+}
+
+export function useCategories() {
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loading,    setLoading]    = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchCategories()
+      .then(data => { if (!cancelled) setCategories(data); })
+      .catch(()  => { if (!cancelled) setCategories([]); })
+      .finally(()=> { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  return { categories, loading };
 }
 
 export function useProduct(id: string) {

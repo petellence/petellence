@@ -4,14 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Store } from "lucide-react";
-import { useProducts } from "@/lib/hooks";
+import { useCategories } from "@/lib/hooks";
 import { C, serif, sans } from "@/lib/theme";
 
 export default function Nav() {
   const [scrolled,   setScrolled]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [prodOpen,   setProdOpen]   = useState(false);
-  const { products } = useProducts();
+  const { categories } = useCategories();
   const pathname = usePathname();
 
   // Hover-intent: keep the dropdown open while moving across the small gap
@@ -102,19 +102,22 @@ export default function Nav() {
                     <p className="text-[10px]" style={{ color: `${C.ivory}55`, fontFamily: sans }}>Browse the collection</p>
                   </div>
                 </Link>
-                {products.map(p => (
+                <p className="px-4 pt-3 pb-1 text-[9px] font-bold tracking-[0.2em] uppercase" style={{ color: `${C.ivory}40`, fontFamily: sans }}>
+                  Shop by Category
+                </p>
+                {categories.map(({ category, count }) => (
                   <Link
-                    key={p.id}
-                    href={`/products/${p.id}`}
+                    key={category}
+                    href={`/products?category=${encodeURIComponent(category)}`}
                     className="flex items-center gap-3 px-4 py-3 transition-colors"
                     style={{ borderBottom: `1px solid ${C.gold}18` }}
                     onMouseEnter={e => (e.currentTarget.style.background = `${C.gold}10`)}
                     onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                   >
                     <span className="text-lg">🌿</span>
-                    <div>
-                      <p className="text-xs font-bold" style={{ color: C.ivory, fontFamily: sans }}>{p.name}</p>
-                      <p className="text-[10px]" style={{ color: `${C.ivory}55`, fontFamily: sans }}>₹{p.price.toLocaleString("en-IN")}</p>
+                    <div className="flex-1 flex items-center justify-between gap-2">
+                      <p className="text-xs font-bold" style={{ color: C.ivory, fontFamily: sans }}>{category}</p>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ color: `${C.ivory}55`, background: `${C.gold}12`, fontFamily: sans }}>{count}</span>
                     </div>
                   </Link>
                 ))}
@@ -122,6 +125,18 @@ export default function Nav() {
               </div>
             )}
           </div>
+
+          <Link href="/about" className="text-sm transition-colors" style={{ color: `${C.ivory}90`, fontFamily: sans }}
+            onMouseEnter={e => (e.currentTarget.style.color = C.gold)}
+            onMouseLeave={e => (e.currentTarget.style.color = `${C.ivory}90`)}>
+            About Us
+          </Link>
+
+          <Link href="/contact" className="text-sm transition-colors" style={{ color: `${C.ivory}90`, fontFamily: sans }}
+            onMouseEnter={e => (e.currentTarget.style.color = C.gold)}
+            onMouseLeave={e => (e.currentTarget.style.color = `${C.ivory}90`)}>
+            Contact Us
+          </Link>
         </div>
 
         {/* right actions */}
@@ -147,19 +162,24 @@ export default function Nav() {
       {/* mobile menu */}
       {mobileOpen && (
         <div className="md:hidden px-5 pb-5" style={{ background: "rgba(42,6,16,0.98)" }}>
-          {[{ label: "Home", to: "/" }, { label: "All Products", to: "/products" }].map(({ label, to }) => (
+          {[
+            { label: "Home", to: "/" },
+            { label: "All Products", to: "/products" },
+            { label: "About Us", to: "/about" },
+            { label: "Contact Us", to: "/contact" },
+          ].map(({ label, to }) => (
             <Link key={to} href={to}
               className="flex items-center justify-between py-3 text-sm"
               style={{ color: C.ivory, fontFamily: sans, borderBottom: `1px solid ${C.gold}18` }}>
               {label}
             </Link>
           ))}
-          <p className="text-[10px] tracking-[0.2em] uppercase mt-4 mb-2" style={{ color: C.gold }}>Products</p>
-          {products.map(p => (
-            <Link key={p.id} href={`/products/${p.id}`}
-              className="block py-2.5 text-sm"
+          <p className="text-[10px] tracking-[0.2em] uppercase mt-4 mb-2" style={{ color: C.gold }}>Shop by Category</p>
+          {categories.map(({ category, count }) => (
+            <Link key={category} href={`/products?category=${encodeURIComponent(category)}`}
+              className="flex items-center justify-between py-2.5 text-sm"
               style={{ color: `${C.ivory}80`, fontFamily: sans, borderBottom: `1px solid ${C.gold}10` }}>
-              {p.name} <span style={{ color: C.gold }}>₹{p.price.toLocaleString("en-IN")}</span>
+              {category} <span style={{ color: C.gold }}>{count}</span>
             </Link>
           ))}
         </div>

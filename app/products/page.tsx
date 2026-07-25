@@ -1,19 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { Star, ArrowRight, SlidersHorizontal, Search, Store } from "lucide-react";
 import { C, serif, sans } from "@/lib/theme";
 import { useProducts } from "@/lib/hooks";
 import BenefitIcon from "../_components/BenefitIcon";
 
-export default function ProductsPage() {
+function ProductsPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category");
   const { products, loading } = useProducts();
   const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeFilter, setActiveFilter] = useState(categoryParam ?? "All");
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
+
+  // Keep the active filter in sync when the ?category= param changes
+  useEffect(() => {
+    setActiveFilter(categoryParam ?? "All");
+  }, [categoryParam]);
 
   const filters = useMemo(() => {
     const productFilters = products.flatMap(p => [p.category, ...p.concerns]).filter(Boolean);
@@ -297,5 +304,13 @@ export default function ProductsPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div style={{ background: C.dark, minHeight: "100vh" }} />}>
+      <ProductsPageContent />
+    </Suspense>
   );
 }
